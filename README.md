@@ -22,8 +22,25 @@ relevant passage from your actual study materials before answering.
 
 ## Architecture
 
-![Architecture Diagram]([docs/Sakura%20Stack%20Architecture%20Diagrams.pdf])
-*(diagram coming — Week 1)*
+<details>
+<summary>Click to expand architecture diagrams</summary>
+
+### Overview
+![Architecture Overview](docs/architecture-overview.png)
+
+### Infrastructure Layer
+![Infrastructure Architecture](docs/architecture-infrastructure.png)
+
+### Data Flow
+![Data Flow Diagram](docs/architecture-dataflow.png)
+
+### AI Layer
+![AI Layer Architecture](docs/architecture-ai-layer.png)
+
+### Technology Decisions
+![Technology Decisions](docs/architecture-tech-decisions.png)
+
+</details>
 
 **Stack decision:** AWS for infrastructure and data layers (Terraform, 
 EC2, S3, RDS). Azure OpenAI for the AI layer — deliberately chosen to 
