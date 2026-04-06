@@ -22,7 +22,7 @@ relevant passage from your actual study materials before answering.
 
 ## Architecture
 
-![Architecture Diagram](docs/architecture.png)
+![Architecture Diagram]([docs/Sakura%20Stack%20Architecture%20Diagrams.pdf])
 *(diagram coming — Week 1)*
 
 **Stack decision:** AWS for infrastructure and data layers (Terraform, 
