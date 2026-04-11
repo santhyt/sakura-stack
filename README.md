@@ -99,14 +99,29 @@ to the same pipeline with zero code changes.
 
 ## Roadmap
 
-- [x] Project scaffolding + README
-- [ ] Terraform: S3 + EC2 + RDS provisioned
-- [ ] Docker Compose: local environment
-- [ ] GitHub Actions CI/CD
-- [ ] PDF extraction pipeline (PyMuPDF)
-- [ ] Airflow DAG: end-to-end pipeline
-- [ ] dbt models: vocabulary + grammar
-- [ ] ChromaDB: vector embeddings
-- [ ] RAG chain: LangChain + Azure OpenAI
-- [ ] Streamlit UI: chat + vocab cards
-- [ ] Live deployment: Render.com
+### Phase 1 — Platform Foundation (Weeks 1–2)
+- [x] Project scaffolding, README and architecture diagrams
+- [x] Requirements.txt and project dependencies
+- [x] Local environment setup (Docker, Python, AWS CLI)
+- [x] PDF extraction script (PyMuPDF)
+- [x] AWS account + IAM user configured
+- [x] Docker Compose: local PostgreSQL + ChromaDB running
+- [ ] Terraform: S3 bucket, EC2, RDS PostgreSQL, VPC provisioned
+- [ ] GitHub Actions: CI/CD pipeline with linting and Terraform validate
+
+### Phase 2 — Data Engineering (Weeks 3–5)
+- [ ] PDF extraction script (PyMuPDF) — chunks with metadata
+- [ ] PostgreSQL schema: raw\_chunks, vocabulary, grammar\_rules, passages
+- [ ] Airflow DAG: S3 trigger → extract → clean → load to Postgres
+- [ ] dbt models: staging → marts (vocabulary, grammar, passages)
+
+### Phase 3 — AI Layer (Weeks 6–8)
+- [ ] Azure account created + Azure OpenAI access request submitted
+- [ ] ChromaDB: vector embeddings from processed chunks
+- [ ] RAG chain: LangChain + Azure OpenAI (GPT-4o-mini)
+- [ ] Prompt templates: vocabulary, grammar, reading comprehension
+
+### Phase 4 — UI and Deployment (Weeks 9–10)
+- [ ] Streamlit UI: chat interface, vocabulary cards, pipeline status tab
+- [ ] Live deployment to Render.com — public URL for portfolio
+- [ ] Loom walkthrough video recorded and embedded

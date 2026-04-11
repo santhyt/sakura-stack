@@ -1,0 +1,31 @@
+#Set up Docker Compose for local PostgreSQL#
+
+#version: '3.8'  <- gives warning msg that it's no longer needed in newwer versions of Docker Compose
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: sakura_postgres
+    environment:
+      POSTGRES_DB: sakura_stack
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./data/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: sakura_chromadb
+    ports:
+      - "8000:8000"
+    volumes:
+      - chromadb_data:/chroma/chroma
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  chromadb_data:
