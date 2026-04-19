@@ -207,9 +207,18 @@ marimo/_lsp/
 __marimo__/
 
 
-#add raw_pdfs folder to .gitignore too, not to commit potentially large PDFs to GitHub
+# adding raw_pdfs, not to commit potentially large PDFs to GitHub
 data/raw_pdfs/
 venv/
 .env
 __pycache__/
 *.pyc
+
+# terraform
+infra/sakura-stack-key
+infra/sakura-stack-key.pub
+infra/terraform.tfvars
+infra/.terraform/
+infra/*.tfstate
+infra/*.tfstate.backup
+infra/.terraform.lock.hcl

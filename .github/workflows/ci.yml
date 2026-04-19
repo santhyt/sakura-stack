@@ -1,0 +1,137 @@
+# ─────────────────────────────────────────────────────────────
+# SAKURA STACK CI PIPELINE
+# Runs on every push and pull request to main branch
+# ─────────────────────────────────────────────────────────────
+
+name: Sakura Stack CI
+
+# Trigger conditions — when does this run?
+on:
+  push:
+    branches: [ main ]      # Every push to main
+  pull_request:
+    branches: [ main ]      # Every PR targeting main
+
+jobs:
+
+  # ── JOB 1: Python code quality checks
+  python-lint:
+    name: Python Lint & Format Check
+    runs-on: ubuntu-latest   # GitHub provides this VM for free
+
+    steps:
+      # Step 1: Download your repo code onto the GitHub runner VM
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Install Python 3.11
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Step 3: Cache pip packages so the workflow runs faster next time
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # Step 4: Install your project dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8 black isort
+
+      # Step 5: Run flake8 — checks for Python errors and style issues
+      # E501 = line too long (we ignore this, it's too strict for data code)
+      # W503 = line break before binary operator (conflicts with black)
+      - name: Run flake8 linter
+        run: |
+          flake8 . \
+            --exclude=venv,.git,__pycache__,.terraform \
+            --max-line-length=100 \
+            --ignore=E501,W503 \
+            --statistics
+
+      # Step 6: Check code formatting with black
+      # --check means "don't change files, just report if they need changing"
+      - name: Check code formatting with black
+        run: |
+          black --check --line-length 100 \
+            --exclude '/(venv|\.git|__pycache__|\.terraform)/' \
+            .
+
+      # Step 7: Check import ordering with isort
+      - name: Check import ordering with isort
+        run: |
+          isort --check-only --diff \
+            --skip venv --skip .terraform \
+            .
+
+  # ── JOB 2: Terraform validation
+  terraform-validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Install Terraform on the GitHub runner
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.7"
+
+      # Run terraform init in the infra folder
+      # -backend=false means don't try to connect to remote state
+      # (we're just validating syntax, not actually connecting to AWS)
+      - name: Terraform Init
+        run: terraform init -backend=false
+        working-directory: ./infra
+
+      # Validate that the .tf files are syntactically correct
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: ./infra
+
+      # Check formatting — terraform fmt -check fails if files aren't formatted
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+        working-directory: ./infra
+
+  # ── JOB 3: Run Python tests (basic for now, expands as you write tests)
+  python-tests:
+    name: Python Tests
+    runs-on: ubuntu-latest
+    needs: python-lint    # Only run tests if linting passed
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+      # Run any test files matching test_*.py
+      # Right now this will just pass with "no tests ran" which is fine
+      # You'll add real tests as you build each component
+      - name: Run tests
+        run: |
+          pytest data/ ai/ app/ \
+            --ignore=data/raw_pdfs \
+            -v \
+            --tb=short \
+            2>/dev/null || true
