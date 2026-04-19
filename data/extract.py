@@ -1,5 +1,4 @@
 import json
-import os
 from datetime import datetime
 from pathlib import Path
 
@@ -44,7 +43,7 @@ def extract_text_from_pdf(pdf_path: Path) -> list[dict]:
         chunk_size = 300
 
         for i in range(0, len(words), chunk_size):
-            chunk_words = words[i : i + chunk_size]
+            chunk_words = words[i:i + chunk_size]
             chunk_text = " ".join(chunk_words)
 
             # Skip if chunk is too short to be useful

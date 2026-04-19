@@ -12,6 +12,9 @@ on:
   pull_request:
     branches: [ main ]      # Every PR targeting main
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
 
   # ── JOB 1: Python code quality checks
@@ -61,7 +64,7 @@ jobs:
           flake8 . \
             --exclude=venv,.git,__pycache__,.terraform \
             --max-line-length=100 \
-            --ignore=E501,W503 \
+            --ignore=E501,W503,E203 \
             --statistics
 
       # Step 6: Check code formatting with black

@@ -1,7 +1,6 @@
 import json
 import os
 from glob import glob
-from pathlib import Path
 
 import psycopg2
 from dotenv import load_dotenv
@@ -32,12 +31,12 @@ def load_chunks_to_db(chunks: list[dict]):
         try:
             cursor.execute(
                 """
-                INSERT INTO raw_chunks 
-                    (source_file, page_number, chunk_index, content, 
-                     content_length, word_count, section_type, extracted_at)
-                VALUES 
+                INSERT INTO raw_chunks
+                    (source_file, page_number, chunk_index, content,
+                    content_length, word_count, section_type, extracted_at)
+                    VALUES
                     (%s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT DO NOTHING
+                    ON CONFLICT DO NOTHING
             """,
                 (
                     chunk["source_file"],

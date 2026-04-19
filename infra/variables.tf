@@ -39,3 +39,9 @@ variable "db_instance_class" {
   type        = string
   default     = "db.t3.micro"
 }
+
+variable "ec2_public_key" {
+  description = "SSH public key content for EC2 access — paste contents of sakura-stack-key.pub"
+  type        = string
+  default     = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0 placeholder-for-ci-validation"
+}

@@ -222,3 +222,11 @@ infra/.terraform/
 infra/*.tfstate
 infra/*.tfstate.backup
 infra/.terraform.lock.hcl
+
+
+# Extracted data — contains copyrighted PDF content
+data/extracted/
+data/raw_pdfs/
+
+# Also ignore any stray JSON files in data folder
+data/*.json

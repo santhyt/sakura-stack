@@ -249,7 +249,7 @@ resource "aws_security_group" "rds" {
 # We generate the key locally; Terraform uploads the public half to AWS
 resource "aws_key_pair" "sakura" {
   key_name   = "${var.project_name}-key"
-  public_key = file("${path.module}/sakura-stack-key.pub")
+  public_key = var.ec2_public_key
 }
 
 resource "aws_instance" "main" {
