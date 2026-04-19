@@ -19,7 +19,7 @@ variable "environment" {
 variable "db_password" {
   description = "Password for the RDS PostgreSQL instance"
   type        = string
-  sensitive   = true  # Terraform won't print this in logs
+  sensitive   = true # Terraform won't print this in logs
 }
 
 variable "db_username" {
