@@ -1,3 +1,9 @@
+# Note: black, isort, flake8 installed via pipx (not pip) to avoid
+# pathspec version conflict with dbt-core. Install with:
+#   pipx install black
+#   pipx install isort
+#   pipx install flake8
+
 pymupdf==1.24.0
 boto3==1.34.0
 psycopg2-binary==2.9.9
