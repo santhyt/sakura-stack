@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: stg_vocabulary
+    description: "Cleaned vocabulary data from Replit import"
+    columns:
+      - name: id
+        tests: [unique, not_null]
+      - name: japanese_word
+        tests: [not_null]
+      - name: priority_score
+        description: "Higher = more important for study"
+
+  - name: stg_grammar
+    description: "Cleaned grammar data from Replit import"
+    columns:
+      - name: id
+        tests: [unique, not_null]
+      - name: pattern
+        tests: [not_null]
+
+  - name: stg_chunks
+    description: "Cleaned raw chunks for RAG system"
+    columns:
+      - name: id
+        tests: [unique, not_null]
+      - name: content
+        tests: [not_null]
+
+  - name: mart_study_items
+    description: "Unified study items for the UI"
+    columns:
+      - name: term
+        description: "The word or grammar pattern to study"
+      - name: priority_score
+        description: "Priority for spaced repetition"
