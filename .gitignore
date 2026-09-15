@@ -230,3 +230,9 @@ data/raw_pdfs/
 
 # Also ignore any stray JSON files in data folder
 data/*.json
+
+# Extracted catalog file (large)
+data/dbt_jlpt/target/
+data/dbt_jlpt/logs/
+data/dbt_jlpt/dbt_packages/
+
