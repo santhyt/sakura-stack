@@ -5,7 +5,7 @@
 
 **Status:** 🚧 Active development — Phase 4 (UI) complete, Render deployment next
 **JLPT target:** N2 (December 2026)
-**Live demo:** coming soon
+**Live demo:** https://sakura-stack.streamlit.app
 
 ---
 
@@ -296,3 +296,13 @@ This is why the project uses port **5434** for PostgreSQL, not 5432.
 Airflow officially targets POSIX systems. Native Windows install fails
 on missing `fcntl`. Use the containerised Airflow via
 `docker-compose-airflow.yml` instead.
+
+
+## Deployment
+
+The Streamlit app is deployed at **https://sakura-stack.streamlit.app**.
+
+- **App hosting:** Streamlit Community Cloud
+- **Database:** Neon (serverless Postgres) — schema in `data/sql/`, data seeded via `data/seed_neon.py`
+- **Local development:** Docker Postgres + ChromaDB + Ollama
+- **AI layer (RAG):** Runs locally with Ollama. The hosted demo shows the data pipeline and browse pages; a Loom walkthrough covers the RAG flow (link coming soon).
