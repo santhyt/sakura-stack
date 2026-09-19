@@ -236,3 +236,9 @@ data/dbt_jlpt/target/
 data/dbt_jlpt/logs/
 data/dbt_jlpt/dbt_packages/
 
+
+# Streamlit secrets (contains DB credentials)
+.streamlit/secrets.toml
+
+# Streamlit secrets
+.streamlit/secrets.toml
