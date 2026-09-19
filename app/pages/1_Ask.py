@@ -1,10 +1,11 @@
 """
-Ask page — chat with the RAG system (streaming).
+Ask page — chat with the RAG system.
 """
 
 import sys
 from pathlib import Path
 
+import requests
 import streamlit as st
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -13,13 +14,32 @@ if str(PROJECT_ROOT) not in sys.path:
 if str(PROJECT_ROOT / "app") not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT / "app"))
 
-# Import the hybrid query function
-from ai.rag import query_rag
-
 st.set_page_config(page_title="Ask — Sakura Stack", page_icon="💬", layout="wide")
 
 st.title("💬 Ask Sakura Stack")
 st.caption("Ask about JLPT N2 vocabulary, grammar, or reading comprehension.")
+
+# ---- Ollama availability check ----
+OLLAMA_AVAILABLE = False
+try:
+    r = requests.get("http://localhost:11434/api/tags", timeout=1)
+    OLLAMA_AVAILABLE = r.status_code == 200
+except Exception:
+    OLLAMA_AVAILABLE = False
+
+if not OLLAMA_AVAILABLE:
+    st.warning(
+        "The Ask feature runs a local LLM (Ollama) and is not available "
+        "in this hosted demo. The RAG pipeline runs on my laptop — see "
+        "the Loom walkthrough in the README for a live demo.\n\n"
+        "**The Vocabulary, Grammar, and Pipeline tabs all work** — they "
+        "query this same PostgreSQL database in the cloud."
+    )
+    st.stop()
+# ---- End Ollama check ----
+
+# Import the hybrid query function only when Ollama is available
+from ai.rag import query_rag
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
