@@ -3,7 +3,7 @@
 > An AI-powered Japanese language learning platform built to demonstrate
 > end-to-end Data Engineering, Platform Engineering, and Applied AI Engineering.
 
-**Status:** 🚧 Active development — Phase 3 (RAG) working, Phase 4 (UI) next
+**Status:** 🚧 Active development — Phase 4 (UI) complete, Render deployment next
 **JLPT target:** N2 (December 2026)
 **Live demo:** coming soon
 
@@ -64,7 +64,7 @@ As the project progressed, pragmatic decisions were made:
 |---------|---------------|--------|
 | PyMuPDF PDF extraction | Replit pre-processed data | PDF extraction produced ~8% of expected grammar content from complex Japanese textbooks; sourced higher-quality data instead |
 | Azure OpenAI (GPT-4o-mini) | Ollama (Mistral 7B) locally | Zero API cost, offline capability, no vendor lock-in for portfolio demo |
-| LangChain orchestration | Direct ChromaDB + Ollama SDK | Simpler, fewer dependencies, fully transparent retrieval |
+| LangChain orchestration | ✅ LangChain implemented | `langchain-chroma` + `langchain-ollama` for RAG pipeline |
 | Airflow from day one | Airflow added post-MVP | Prioritised working product; orchestration layer designed and deferred |
 | AWS RDS PostgreSQL | Local Docker PostgreSQL | Cost-conscious for portfolio phase; Terraform config ready for deployment |
 | JLPT N3 target | JLPT N2 target | Adjusted after N3 result — same pipeline supports N2 with zero code changes |
@@ -72,18 +72,25 @@ As the project progressed, pragmatic decisions were made:
 ---
 
 ## Project Structure
+
+```
 sakura-stack/
-├── infra/ # Terraform — AWS infrastructure (planned)
-├── data/ # ETL scripts, dbt models, loaders
-│ ├── extract.py
-│ ├── load_vocab_grammar.py
-│ └── dbt_jlpt/ # dbt project
-├── dags/ # Airflow DAGs
-├── ai/ # RAG pipeline
-│ ├── embed.py
-│ └── rag.py
-├── app/ # Streamlit application (in progress)
-└── docs/ # Architecture diagrams
+├── infra/              # Terraform — AWS (validated, not deployed)
+├── data/               # ETL scripts, dbt models, loaders
+│   ├── extract.py
+│   ├── load_vocab_grammar.py
+│   ├── load_to_db.py
+│   └── dbt_jlpt/       # dbt project
+├── dags/               # Airflow DAGs
+├── ai/                 # RAG pipeline
+│   ├── embed.py
+│   └── rag.py
+├── app/                # Streamlit UI
+│   ├── streamlit_app.py
+│   ├── pages/
+│   └── utils/
+└── docs/               # Architecture diagrams
+```
 
 
 ---
@@ -92,7 +99,7 @@ sakura-stack/
 
 | Table | Rows | Purpose |
 |-------|------|---------|
-| `raw_chunks` | 2,405 | Source text chunks for RAG |
+| `raw_chunks` | 3,168 | Source text chunks for RAG |
 | `vocabulary` | 1,157 | N2 vocabulary items |
 | `grammar_rules` | 275 | N2 grammar patterns |
 | `mart_study_items` (dbt) | 1,432 | Unified view for the UI |
@@ -104,12 +111,43 @@ sakura-stack/
 1. **Ingestion** — JLPT study materials (PDFs → text → structured JSON)
 2. **Storage** — PostgreSQL (`raw_chunks`, `vocabulary`, `grammar_rules`)
 3. **Transformation** — dbt models: staging → marts with 9 passing tests
-4. **Embedding** — 2,405 chunks embedded via nomic-embed-text → ChromaDB
-5. **Retrieval** — ChromaDB semantic search returns top-K relevant chunks
+4. **Embedding** — 2,885 chunks embedded via nomic-embed-text → ChromaDB
+5. **Retrieval** — Hybrid search (keyword pre-filter + ChromaDB vector search)
 6. **Generation** — Mistral 7B generates grounded answers with source citations
 7. **Serving** — Streamlit UI (in progress)
 
 ---
+
+## Known Limitations
+
+### Scanned PDFs produce 0 chunks
+Three source PDFs are image-based (no text layer). PyMuPDF extracts
+text but finds nothing, so they contribute 0 chunks:
+
+- One N3 vocabulary storybook (~294 pages, scanned)
+- One N3 grammar workbook (~210 pages, scanned)
+- One N3 practice question collection (~295 pages, scanned)
+
+Combined: 799 pages producing zero usable text.
+
+**Plan:** Add Tesseract OCR fallback in Phase 5.
+
+### RAG retrieval quality (partially fixed)
+Pure vector search returned semantically similar chunks rather than
+exact matches, causing hallucination (e.g. 扱う read as かんう instead
+of あつかう). Fixed with hybrid retrieval (keyword pre-filter +
+vector search). Remaining: patterns that overlap vocab (みたい, らしい)
+still mix section types — planned `section_type` filter in Phase 5.
+
+### Duplicate chunks on re-extraction
+Re-running `extract.py` + `load_to_db.py` appends new chunks even for
+the same source PDF (different `extracted_at`). Postgres: 3,168 rows
+vs ChromaDB: 2,885. **Plan:** dedupe by
+`(source_file, page_number, chunk_index)` in Phase 5.
+
+### Airflow not operational
+DAG is defined and scripts are Airflow-ready (argparse + logging +
+exit codes), but not scheduled. **Plan:** enable in Phase 5.
 
 ## Why I built this
 
@@ -145,17 +183,23 @@ into a folder and running the same DAG with zero code changes.
 - [x] RAG query system (`ai/rag.py`)
 - [x] Working end-to-end grounded question answering
 
-### 🚧 Phase 4 — UI and Deployment (in progress)
-- [ ] Streamlit UI: chat interface
-- [ ] Vocabulary / grammar browse tabs
-- [ ] Pipeline status dashboard
+### ✅ Phase 4 — UI and Deployment
+- [x] Streamlit UI: chat interface (💬 Ask)
+- [x] Vocabulary browse tab (1,157 items, searchable)
+- [x] Grammar browse tab (275 patterns, searchable)
+- [x] Pipeline status dashboard (counts, section breakdown, ChromaDB)
+- [x] Hybrid retrieval (keyword + vector) in RAG layer
 - [ ] Deployment to Render.com
 - [ ] Loom walkthrough video
 
-### ⏸️ Phase 5 — Orchestration & Cloud (deferred)
-- [ ] Airflow DAG operational (infrastructure already in Docker)
+### ⏸️ Phase 5 — Orchestration, Cloud & Polish (deferred)
+- [ ] Airflow DAG operational (scripts already Airflow-ready)
 - [ ] Terraform: S3 bucket, EC2, RDS provisioned
 - [ ] AWS deployment of full stack
+- [ ] Tesseract OCR fallback for scanned PDFs
+- [ ] RAG: `section_type` filter for overlapping patterns
+- [ ] Dedupe `raw_chunks` by (source_file, page_number, chunk_index)
+- [ ] Azure OpenAI backend (LangChain swap — ~2-line change)
 
 ---
 
@@ -201,6 +245,15 @@ This demonstrates:
 - **RAG quality is an iterative problem.** Initial retrieval mixed
   vocabulary and grammar chunks. Next step: metadata filtering by
   `section_type`.
+- **Hybrid retrieval > pure vector search for exact-match queries.**
+  A Japanese word lookup needs keyword matching, not just semantic
+  similarity. Adding a SQL pre-filter cut hallucination dramatically.
+- **RAG interfaces need to be stable early.** Refactoring
+  `build_rag_chain` to return 3 values instead of 2 broke the UI —
+  a lesson in interface contracts between modules.
+- **LLM hallucination is a retrieval problem, not a model problem.**
+  When Mistral invented a reading, the fix wasn't a better model —
+  it was ensuring the correct chunk was in the context.
 
 
 
@@ -210,23 +263,36 @@ This demonstrates:
 
 On Windows with WSL2 installed, `wslrelay.exe` can bind to
 `127.0.0.1:5432`, silently routing database connections away from the
-Docker container. Symptoms: Docker works, `docker ps` shows the container
-running, but `psycopg2` and `psql` fail with "password authentication
-failed" even with the correct password.
+Docker container. Symptoms: Docker works, `docker ps` shows the
+container running, but `psycopg2` and `psql` fail with
+"password authentication failed" even with the correct password.
 
 **Diagnosis:**
+
 ```bash
 netstat -ano | findstr :5432
 # If PID is wslrelay.exe and not docker, you have this issue
+```
 
-Fix: Map PostgreSQL to a different host port in docker-compose.yml:
+**Fix:** Map PostgreSQL to a different host port in `docker-compose.yml`:
+
+```yaml
 ports:
   - "5434:5432"
+```
 
-Then update .env:
+Then update `.env`:
+
+```
 DB_PORT=5434
+```
 
-Also update ~/.dbt/profiles.yml to use port: 5434.
+Also update `~/.dbt/profiles.yml` to use `port: 5434`.
 
-This is why the project uses port 5434 for PostgreSQL, not the default
-5432.
+This is why the project uses port **5434** for PostgreSQL, not 5432.
+
+### Airflow on Windows
+
+Airflow officially targets POSIX systems. Native Windows install fails
+on missing `fcntl`. Use the containerised Airflow via
+`docker-compose-airflow.yml` instead.
